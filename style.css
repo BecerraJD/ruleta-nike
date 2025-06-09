@@ -1,0 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden; /* Evitar barras de desplazamiento */
+}
+
+.game-container {
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    text-align: center;
+    max-width: 90%;
+    width: 500px; /* Ancho máximo para el contenedor */
+    box-sizing: border-box;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 25px;
+    font-size: 2.2em;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+}
+
+.roulette-wheel-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 30px auto;
+    border-radius: 50%; /* Esto es lo que recorta los cuadrados en un círculo */
+    overflow: hidden; /* Recorta los segmentos a la forma circular */
+    background-color: #e0e0e0;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.2);
+    border: 10px solid #2C3E50; /* Borde oscuro exterior como en la imagen */
+    box-sizing: border-box;
+}
+
+.roulette-wheel {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: transform 4s ease-out; /* Animación de desaceleración suave */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wheel-segment {
+    position: absolute;
+    width: 50%; /* Ancho igual al radio */
+    height: 50%; /* Alto igual al radio */
+    top: 50%; /* Posiciona el origen en el centro del contenedor */
+    left: 50%; /* Posiciona el origen en el centro del contenedor */
+    transform-origin: 0% 0%; /* El punto de pivote es la esquina superior izquierda del segmento (el centro de la ruleta) */
+    /* No se necesita clip-path para un cuadrado, overflow del padre se encarga */
+    /* El color de fondo se asigna en JS */
+}
+
+/* Estilo para segmentos agotados (ahora puramente visual sin texto en el segmento) */
+/* Esta clase ya no se aplica directamente a los segmentos visuales ya que el agotamiento es por premio */
+/* Pero se mantiene por si se decide usar para otra señal visual */
+.exhausted-segment {
+    background-color: #cccccc !important; /* Gris claro para agotados */
+    filter: grayscale(80%); /* Para dar un efecto de agotado */
+    opacity: 0.7;
+}
+
+.indicator {
+    position: absolute;
+    top: -20px; /* Posición por encima de la ruleta */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 30px solid #FFD166; /* Amarillo más grande */
+    z-index: 10;
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+}
+
+.center-star {
+    position: absolute;
+    width: 80px; /* Tamaño del círculo central */
+    height: 80px;
+    background-color: #3498DB; /* Azul central */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5; /* Asegura que esté sobre los segmentos */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    border: 5px solid #F39C12; /* Borde dorado como en la imagen */
+    box-sizing: border-box;
+}
+
+.center-star::before {
+    content: '⭐'; /* Unicode Star */
+    font-size: 3em;
+    color: #F1C40F; /* Dorado */
+    text-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+button {
+    background: linear-gradient(145deg, #6a82fb, #fc5c7d);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    outline: none;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+button:hover {
+    background: linear-gradient(145deg, #fc5c7d, #6a82fb);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+#result-display {
+    margin-top: 30px;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #333;
+    min-height: 50px; /* Para evitar CLS */
+}
+
+.message-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: none; /* Oculto por defecto */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 80%;
+    text-align: center;
+}
+
+.message-box h3 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.6em;
+}
+
+.message-box p {
+    font-size: 1.2em;
+    color: #555;
+    margin-bottom: 25px;
+}
+
+.message-box button {
+    padding: 10px 25px;
+    font-size: 1em;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 600px) {
+    .game-container {
+        padding: 20px;
+        width: 100%;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    .roulette-wheel-container {
+        width: 250px;
+        height: 250px;
+        margin: 20px auto;
+    }
+
+    button {
+        padding: 12px 25px;
+        font-size: 1em;
+    }
+
+    #result-display {
+        font-size: 1.4em;
+        margin-top: 20px;
+    }
+    .message-box h3 {
+        font-size: 1.4em;
+    }
+    .message-box p {
+        font-size: 1em;
+    }
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta de Premios</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>¡Gira la Ruleta de Premios!</h1>
+        <div class="roulette-wheel-container">
+            <div class="roulette-wheel" id="rouletteWheel">
+            </div>
+            <div class="indicator"></div>
+            <div class="center-star"></div>
+        </div>
+        <button id="spinButton">¡Girar!</button>
+        <div id="result-display"></div>
+    </div>
+
+    <div id="messageBox" class="message-box">
+        <h3 id="messageTitle"></h3>
+        <p id="messageContent"></p>
+        <button id="messageBoxClose">Cerrar</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
