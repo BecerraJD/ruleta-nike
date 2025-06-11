@@ -3,7 +3,7 @@
 body {
     font-family: 'Inter', sans-serif;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Para apilar el contenedor del juego y el footer */
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -23,6 +23,7 @@ body {
     max-width: 90%;
     width: 500px; /* Ancho máximo para el contenedor */
     box-sizing: border-box;
+    margin-bottom: 20px; /* Espacio entre el contenedor del juego y el footer */
 }
 
 h1 {
@@ -63,52 +64,47 @@ h1 {
     top: 50%; /* Posiciona el origen en el centro del contenedor */
     left: 50%; /* Posiciona el origen en el centro del contenedor */
     transform-origin: 0% 0%; /* El punto de pivote es la esquina superior izquierda del segmento (el centro de la ruleta) */
-    /* No se necesita clip-path para un cuadrado, overflow del padre se encarga */
-    /* El color de fondo se asigna en JS */
 }
 
-/* Estilo para segmentos agotados (ahora puramente visual sin texto en el segmento) */
-/* Esta clase ya no se aplica directamente a los segmentos visuales ya que el agotamiento es por premio */
-/* Pero se mantiene por si se decide usar para otra señal visual */
 .exhausted-segment {
-    background-color: #cccccc !important; /* Gris claro para agotados */
-    filter: grayscale(80%); /* Para dar un efecto de agotado */
+    background-color: #cccccc !important;
+    filter: grayscale(80%);
     opacity: 0.7;
 }
 
 .indicator {
     position: absolute;
-    top: -20px; /* Posición por encima de la ruleta */
+    top: -20px;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
     height: 0;
     border-left: 20px solid transparent;
     border-right: 20px solid transparent;
-    border-bottom: 30px solid #FFD166; /* Amarillo más grande */
+    border-bottom: 30px solid #FFD166;
     z-index: 10;
     filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
 }
 
 .center-star {
     position: absolute;
-    width: 80px; /* Tamaño del círculo central */
+    width: 80px;
     height: 80px;
-    background-color: #3498DB; /* Azul central */
+    background-color: #3498DB;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 5; /* Asegura que esté sobre los segmentos */
+    z-index: 5;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    border: 5px solid #F39C12; /* Borde dorado como en la imagen */
+    border: 5px solid #F39C12;
     box-sizing: border-box;
 }
 
 .center-star::before {
-    content: '⭐'; /* Unicode Star */
+    content: '⭐';
     font-size: 3em;
-    color: #F1C40F; /* Dorado */
+    color: #F1C40F;
     text-shadow: 0 0 5px rgba(0,0,0,0.3);
 }
 
@@ -126,6 +122,7 @@ button {
     outline: none;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    margin: 5px;
 }
 
 button:hover {
@@ -151,7 +148,7 @@ button:disabled {
     font-size: 1.8em;
     font-weight: bold;
     color: #333;
-    min-height: 50px; /* Para evitar CLS */
+    min-height: 50px;
 }
 
 .message-box {
@@ -164,7 +161,7 @@ button:disabled {
     border-radius: 15px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     z-index: 1000;
-    display: none; /* Oculto por defecto */
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -184,9 +181,76 @@ button:disabled {
     margin-bottom: 25px;
 }
 
-.message-box button {
+/* Contenedor general para todos los botones dentro del modal */
+.modal-buttons-container {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Estilos específicos para los botones del modal de confirmación */
+.message-box .confirm-button {
+    background: linear-gradient(145deg, #28a745, #218838); /* Verde para confirmar */
     padding: 10px 25px;
     font-size: 1em;
+}
+
+.message-box .confirm-button:hover {
+    background: linear-gradient(145deg, #218838, #28a745);
+}
+
+.message-box .cancel-button {
+    background: linear-gradient(145deg, #dc3545, #c82333); /* Rojo para cancelar */
+    padding: 10px 25px;
+    font-size: 1em;
+}
+
+.message-box .cancel-button:hover {
+    background: linear-gradient(145deg, #c82333, #dc3545);
+}
+
+/* Estilo para el botón de cerrar del modal informativo (como el de girar) */
+.message-box .spin-style-button {
+    padding: 15px 30px;
+    font-size: 1.2em;
+    margin: 0; 
+}
+
+
+/* Estilos para el footer y el botón de reinicio "Nike" */
+.game-footer {
+    /* Fondo blanco para que sea visible */
+    background-color: #ffffff;
+    /* Borde redondeado y sombra para que parezca una tarjeta */
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    /* Padding para darle espacio interno */
+    padding: 20px; /* Ajustar padding para que se vea bien */
+    text-align: center;
+    width: 500px; /* Mismo ancho que el game-container para que se alinee */
+    max-width: 90%; /* Asegura que no sea más ancho que la pantalla en móviles */
+    box-sizing: border-box;
+    margin-top: 0; /* Ya tenemos margin-bottom en game-container */
+    display: flex; /* Para centrar el botón dentro del footer */
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: center; /* Centrar verticalmente si hay más contenido */
+    min-height: 80px; /* Altura mínima para que se vea el fondo blanco */
+}
+
+.reset-button {
+    background: #000000;
+    color: #ffffff;
+    padding: 10px 25px;
+    font-size: 1.1em;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.reset-button:hover {
+    background: #333333;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Media queries para responsividad */
@@ -194,6 +258,7 @@ button:disabled {
     .game-container {
         padding: 20px;
         width: 100%;
+        margin-bottom: 15px; /* Ajuste para móvil */
     }
 
     h1 {
@@ -220,5 +285,24 @@ button:disabled {
     }
     .message-box p {
         font-size: 1em;
+    }
+    .reset-button {
+        padding: 8px 20px;
+        font-size: 1em;
+    }
+    .modal-buttons-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .message-box .confirm-button,
+    .message-box .cancel-button,
+    .message-box .spin-style-button {
+        width: 100%;
+        padding: 10px;
+    }
+    .game-footer {
+        padding: 15px; /* Ajuste para móvil */
+        width: 100%;
+        min-height: auto; /* Dejar que se ajuste a la altura del botón */
     }
 }

@@ -1,22 +1,19 @@
 const LOCAL_STORAGE_KEY = 'roulettePrizes';
 
 // Array de premios iniciales
-// Cada premio es un objeto con nombre, cantidad máxima, cantidad actual y tipo.
 const defaultPrizes = [
     { name: "Par de Medias", maxQuantity: 24, currentQuantity: 24, type: 'prize' },
     { name: "10% de Descuento", maxQuantity: 30, currentQuantity: 30, type: 'prize' },
     { name: "Desayuno", maxQuantity: 20, currentQuantity: 20, type: 'prize' },
     { name: "Cordones", maxQuantity: 20, currentQuantity: 20, type: 'prize' },
-    { name: "Lo sentimos! Será la proxima", maxQuantity: 25, currentQuantity: 25, type: 'empty' }, // Premio "vacío"
+    { name: "Lo sentimos! Será la proxima", maxQuantity: 25, currentQuantity: 25, type: 'empty' },
 ];
 
-// Intenta cargar los premios desde localStorage, si no existen, usa los valores por defecto
 let prizes = loadPrizesFromLocalStorage();
 
-// Si los premios cargados no son válidos o están vacíos, usa los valores por defecto
 if (!prizes || prizes.length === 0) {
-    prizes = JSON.parse(JSON.stringify(defaultPrizes)); // Hacer una copia profunda para evitar mutaciones
-    savePrizesToLocalStorage(); // Guardar los valores por defecto la primera vez
+    prizes = JSON.parse(JSON.stringify(defaultPrizes));
+    savePrizesToLocalStorage();
 }
 
 const rouletteWheel = document.getElementById('rouletteWheel');
@@ -25,13 +22,17 @@ const resultDisplay = document.getElementById('result-display');
 const messageBox = document.getElementById('messageBox');
 const messageTitle = document.getElementById('messageTitle');
 const messageContent = document.getElementById('messageContent');
-const messageBoxClose = document.getElementById('messageBoxClose');
+
+// Referencias a los botones del modal
+const confirmActionButton = document.getElementById('confirmActionButton');
+const cancelActionButton = document.getElementById('cancelActionButton');
+const closeInfoMessageButton = document.getElementById('closeInfoMessageButton'); // El botón de "Cerrar" estilo "Girar"
+
+const modalButtonsContainer = document.querySelector('.modal-buttons-container'); // Nuevo contenedor general de botones
+
+const resetButton = document.getElementById('resetButton');
 
 
-/**
- * Carga los premios desde localStorage.
- * @returns {Array} Un array de objetos de premios o null si no hay datos válidos.
- */
 function loadPrizesFromLocalStorage() {
     try {
         const storedPrizes = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -40,115 +41,150 @@ function loadPrizesFromLocalStorage() {
         }
     } catch (e) {
         console.error("Error al cargar premios desde localStorage:", e);
-        // Si hay un error, limpiar el localStorage para evitar problemas futuros
         localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
     return null;
 }
 
-/**
- * Guarda los premios actuales en localStorage.
- */
 function savePrizesToLocalStorage() {
     try {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(prizes));
-        logPrizeQuantitiesToConsole(); // <--- LLAMADA AQUÍ: Registrar en consola después de guardar
+        logPrizeQuantitiesToConsole();
     } catch (e) {
         console.error("Error al guardar premios en localStorage:", e);
     }
 }
 
-// Función para mostrar un mensaje en el modal personalizado
-function showMessage(title, content) {
+/**
+ * Muestra el modal con un título y contenido.
+ * Controla qué botones se muestran en el modal.
+ * @param {string} title - Título del mensaje.
+ * @param {string} content - Contenido del mensaje.
+ * @param {string} type - 'confirm' para botones de confirmar/cancelar, 'info' para botón de cerrar estilo "Girar".
+ */
+function showMessage(title, content, type = 'info') {
     messageTitle.textContent = title;
     messageContent.textContent = content;
+    
+    // Ocultar todos los botones dentro del contenedor general primero
+    confirmActionButton.style.display = 'none';
+    cancelActionButton.style.display = 'none';
+    closeInfoMessageButton.style.display = 'none';
+
+    // Mostrar los botones adecuados según el tipo
+    if (type === 'confirm') {
+        confirmActionButton.style.display = 'inline-block';
+        cancelActionButton.style.display = 'inline-block';
+    } else { // type === 'info'
+        closeInfoMessageButton.style.display = 'inline-block';
+    }
+
+    modalButtonsContainer.style.display = 'flex'; // Asegurarse de que el contenedor de botones sea visible y flex
     messageBox.style.display = 'flex';
 }
 
-// Event listener para cerrar el modal
-messageBoxClose.addEventListener('click', () => {
+// Event listeners para los botones del modal
+cancelActionButton.addEventListener('click', () => {
     messageBox.style.display = 'none';
 });
 
-// Colores para los segmentos de la ruleta (solo 4 colores distintos)
+closeInfoMessageButton.addEventListener('click', () => {
+    messageBox.style.display = 'none';
+});
+
+
+// Colores para los segmentos de la ruleta
 const segmentColors = [
-    "#FF6B6B", // Rojo claro
-    "#4ECDC4", // Verde azulado
-    "#FFD166", // Amarillo
-    "#C7D3D4"  // Gris azulado
+    "#FF6B6B",
+    "#4ECDC4",
+    "#FFD166",
+    "#C7D3D4"
 ];
 
-/**
- * Inicializa la ruleta creando 4 segmentos visuales (cuadrantes).
- * Cada segmento se coloca angularmente como un cuadrante perfecto.
- */
 function initializeWheel() {
-    rouletteWheel.innerHTML = ''; // Limpiar segmentos existentes
-    const numVisualSegments = 4; // Siempre 4 segmentos visuales (cuadrantes)
-    const anglePerVisualSegment = 360 / numVisualSegments; // 90 grados por segmento
+    rouletteWheel.innerHTML = '';
+    const numVisualSegments = 4;
+    const anglePerVisualSegment = 360 / numVisualSegments;
 
     for (let i = 0; i < numVisualSegments; i++) {
         const segment = document.createElement('div');
         segment.classList.add('wheel-segment');
-
-        // Asignar color cíclicamente de los 4 colores definidos
         segment.style.backgroundColor = segmentColors[i];
-
-        // Calcular la rotación para cada uno de los 4 cuadrantes
-        // Estos 4 segmentos se posicionan como cuadrantes de un círculo
-        const rotation = i * anglePerVisualSegment; // 0, 90, 180, 270 grados
+        const rotation = i * anglePerVisualSegment;
         segment.style.transform = `rotate(${rotation}deg)`;
-
         rouletteWheel.appendChild(segment);
     }
 }
 
-// **NUEVA FUNCIÓN: Muestra el estado de los premios en la consola**
 function logPrizeQuantitiesToConsole() {
     console.log("--- Estado actual de los premios ---");
     prizes.forEach(prize => {
         let status = prize.currentQuantity > 0 ? "DISPONIBLE" : "AGOTADO";
         let quantityInfo = `(Quedan: ${prize.currentQuantity})`;
-
-        // Puedes personalizar el formato si quieres diferenciar más
-        // los premios "vacíos" o "lo siento" si lo deseas
-        if (prize.type === 'empty') {
-            console.log(`[${status}] ${prize.name} ${quantityInfo}`);
-        } else {
-            console.log(`[${status}] ${prize.name} ${quantityInfo}`);
-        }
+        console.log(`[${status}] ${prize.name} ${quantityInfo}`);
     });
     console.log("-----------------------------------");
 }
 
+// Función para la lógica de reinicio real
+function performReset() {
+    prizes = JSON.parse(JSON.stringify(defaultPrizes));
+    savePrizesToLocalStorage();
+    
+    spinButton.disabled = false;
+    resultDisplay.textContent = '';
+    messageBox.style.display = 'none'; // Oculta el modal después de reiniciar
 
-/**
- * Función para girar la ruleta.
- * Primero, selecciona un premio disponible. Luego, anima la ruleta
- * para aterrizar en ese premio y actualiza su cantidad.
- * Diferencia el mensaje según el tipo de premio (real o vacío).
- */
+    // Reiniciar la posición de la ruleta visualmente
+    rouletteWheel.style.transition = 'none';
+    rouletteWheel.style.transform = 'rotate(0deg)';
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            rouletteWheel.style.transition = 'transform 4s ease-out';
+        });
+    });
+
+    // Volver a verificar el estado del botón de girar después del reinicio
+    const remainingAvailablePrizes = prizes.filter(p => p.currentQuantity > 0);
+    if (remainingAvailablePrizes.length === 0) {
+        spinButton.disabled = true;
+        resultDisplay.textContent = '¡Todos los premios se han agotado!';
+    } else {
+        spinButton.disabled = false;
+    }
+}
+
+
 spinButton.addEventListener('click', () => {
-    if (spinButton.disabled) return; // Evitar giros múltiples
+    if (spinButton.disabled) return;
 
-    // Filtrar solo los premios que aún tienen cantidad disponible
     const availablePrizes = prizes.filter(p => p.currentQuantity > 0);
 
     if (availablePrizes.length === 0) {
-        // Si no quedan premios disponibles, mostrar un mensaje y deshabilitar el botón
-        showMessage('Juego Terminado', '¡Todos los premios se han agotado! Gracias por jugar.');
+        showMessage('Juego Terminado', '¡Todos los premios se han agotado! Gracias por jugar.', 'info');
         spinButton.disabled = true;
         return;
     }
 
-    spinButton.disabled = true; // Deshabilitar el botón durante el giro
-    resultDisplay.textContent = ''; // Limpiar el resultado anterior
+    spinButton.disabled = true;
+    resultDisplay.textContent = '';
 
-    // 1. Elegir un premio ganador de los disponibles aleatoriamente
-    const randomIndexAvailable = Math.floor(Math.random() * availablePrizes.length);
-    const selectedPrizeObject = availablePrizes[randomIndexAvailable];
+    const weightedPrizes = [];
+    availablePrizes.forEach(prize => {
+        for (let i = 0; i < prize.currentQuantity; i++) {
+            weightedPrizes.push(prize);
+        }
+    });
 
-    // 2. Encontrar el índice original de este premio en el array 'prizes' completo.
+    if (weightedPrizes.length === 0) {
+        showMessage('Juego Terminado', 'No hay premios disponibles para elegir. Reinicia el juego.', 'info');
+        spinButton.disabled = true;
+        return;
+    }
+
+    const randomIndexWeighted = Math.floor(Math.random() * weightedPrizes.length);
+    const selectedPrizeObject = weightedPrizes[randomIndexWeighted];
+    
     const originalPrizeIndex = prizes.findIndex(p => p.name === selectedPrizeObject.name);
 
     if (originalPrizeIndex === -1) {
@@ -157,29 +193,42 @@ spinButton.addEventListener('click', () => {
         return;
     }
 
-    // Mapear el índice del premio lógico a uno de los 4 segmentos visuales
     const numVisualSegments = 4;
     const anglePerVisualSegment = 360 / numVisualSegments;
-    const visualLandingIndex = originalPrizeIndex % numVisualSegments; // Esto asegura que aterrice en uno de los 4 cuadrantes
+    let visualLandingIndex;
+    switch (selectedPrizeObject.name) {
+        case "Par de Medias":
+            visualLandingIndex = 0;
+            break;
+        case "10% de Descuento":
+            visualLandingIndex = 1;
+            break;
+        case "Desayuno":
+            visualLandingIndex = 2;
+            break;
+        case "Cordones":
+            visualLandingIndex = 3;
+            break;
+        case "Lo sentimos! Será la proxima":
+            visualLandingIndex = 3;
+            break;
+        default:
+            visualLandingIndex = 0;
+    }
 
-    // Calcular el ángulo objetivo para que la aguja caiga en el centro del cuadrante visual correspondiente
     const targetAngle = (visualLandingIndex * anglePerVisualSegment) + (anglePerVisualSegment / 2);
-    const totalSpins = 5; // Número de giros completos para una animación más larga y dramática
-    const finalRotation = (totalSpins * 360) + (360 - targetAngle); // Girar hacia la derecha
+    const totalSpins = 5;
+    const finalRotation = (totalSpins * 360) + (360 - targetAngle);
 
-    // Aplicar la transformación de giro
     rouletteWheel.style.transition = 'transform 4s ease-out';
     rouletteWheel.style.transform = `rotate(${finalRotation}deg)`;
 
-    // Esperar a que la animación termine antes de mostrar el resultado
     rouletteWheel.addEventListener('transitionend', function handler() {
         rouletteWheel.removeEventListener('transitionend', handler);
 
-        // Decrementar la cantidad del premio ganador
         prizes[originalPrizeIndex].currentQuantity--;
-        savePrizesToLocalStorage(); // GUARDAR LOS PREMIOS ACTUALIZADOS EN LOCALSTORAGE y llamar a logPrizeQuantitiesToConsole()
+        savePrizesToLocalStorage();
 
-        // Mostrar el resultado en pantalla y en el mensaje modal
         let messageTitleText = '';
         let messageContentText = '';
 
@@ -187,58 +236,66 @@ spinButton.addEventListener('click', () => {
             messageTitleText = '¡Felicidades!';
             messageContentText = `¡Has ganado: "${selectedPrizeObject.name}"!`;
             resultDisplay.textContent = `¡Ganaste: ${selectedPrizeObject.name}!`;
-        } else { // type === 'empty'
+        } else {
             messageTitleText = '¡Suerte para la próxima!';
             messageContentText = `"${selectedPrizeObject.name}"`;
             resultDisplay.textContent = `${selectedPrizeObject.name}`;
         }
 
-        showMessage(messageTitleText, messageContentText);
+        showMessage(messageTitleText, messageContentText, 'info'); // Usar 'info' para mostrar el botón de cerrar estilo "Girar"
 
-        // --- INICIO DE LA CORRECCIÓN PARA LA CONSISTENCIA DE LA ANIMACIÓN ---
-        // Obtener el valor actual de la transformación para capturar la rotación visual
         const currentTransform = window.getComputedStyle(rouletteWheel).getPropertyValue('transform');
         const matrix = new DOMMatrixReadOnly(currentTransform);
         let currentVisualAngle = Math.atan2(matrix.m21, matrix.m11) * (180 / Math.PI);
 
-        // Asegurar que el ángulo sea positivo para consistencia
         if (currentVisualAngle < 0) {
             currentVisualAngle += 360;
         }
 
-        // Deshabilitar temporalmente la transición
         rouletteWheel.style.transition = 'none';
-
-        // Establecer la transformación al ángulo visual calculado
-        // Esto "reinicia" el valor de rotación interno sin un salto visual
         rouletteWheel.style.transform = `rotate(${currentVisualAngle}deg)`;
 
-        // Habilitar de nuevo la transición después de un retraso muy corto para asegurar que el navegador
-        // registre la transición 'none' y el nuevo valor de transformación
         requestAnimationFrame(() => {
-            requestAnimationFrame(() => { // Doble rAF para mayor robustez en diferentes navegadores
+            requestAnimationFrame(() => {
                 rouletteWheel.style.transition = 'transform 4s ease-out';
             });
         });
-        // --- FIN DE LA CORRECCIÓN PARA LA CONSISTENCIA DE LA ANIMACIÓN ---
 
-        spinButton.disabled = false; // Habilitar el botón para el siguiente giro
+        spinButton.disabled = false;
 
-        // Re-inicializar la ruleta (esto no es estrictamente necesario para la visualización de los 4 segmentos fijos,
-        // pero se mantiene si cumple alguna otra función en tu diseño)
-        initializeWheel();
-
-        // Verificar si después de este giro ya no quedan premios reales para deshabilitar el botón
-        // (considerando también los premios tipo 'empty' para la lógica de fin de juego)
         const remainingAvailablePrizes = prizes.filter(p => p.currentQuantity > 0);
         if (remainingAvailablePrizes.length === 0) {
-             spinButton.disabled = true; // Deshabilita si NO quedan premios de ningún tipo
+             spinButton.disabled = true;
+             resultDisplay.textContent = '¡Todos los premios se han agotado!';
         }
     });
 });
 
+// Event listener para el botón "Nike"
+resetButton.addEventListener('click', () => {
+    showMessage(
+        'Confirmar Reinicio',
+        '¿Estás seguro que deseas reiniciar el juego?',
+        'confirm' // Tipo 'confirm' para mostrar los botones de confirmación
+    );
+});
+
+// Event listener para el botón de Confirmar acción
+confirmActionButton.addEventListener('click', () => {
+    performReset(); // Llama a la función que realiza el reinicio
+});
+
+
 // Inicializar la ruleta y registrar los premios disponibles cuando la ventana haya cargado
 window.onload = () => {
     initializeWheel();
-    logPrizeQuantitiesToConsole(); // <--- LLAMADA INICIAL: Registrar en consola al cargar
+    logPrizeQuantitiesToConsole();
+    
+    const remainingAvailablePrizes = prizes.filter(p => p.currentQuantity > 0);
+    if (remainingAvailablePrizes.length === 0) {
+        spinButton.disabled = true;
+        resultDisplay.textContent = '¡Todos los premios se han agotado!';
+    } else {
+        spinButton.disabled = false;
+    }
 };
