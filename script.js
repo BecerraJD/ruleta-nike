@@ -6,7 +6,6 @@ const defaultPrizes = [
     { name: "10% de Descuento", maxQuantity: 30, currentQuantity: 30, type: 'prize' },
     { name: "Desayuno", maxQuantity: 20, currentQuantity: 20, type: 'prize' },
     { name: "Cordones", maxQuantity: 20, currentQuantity: 20, type: 'prize' },
-    { name: "Lo sentimos! Será la proxima", maxQuantity: 25, currentQuantity: 25, type: 'empty' },
 ];
 
 let prizes = loadPrizesFromLocalStorage();
@@ -209,11 +208,6 @@ spinButton.addEventListener('click', () => {
         case "Cordones":
             visualLandingIndex = 3;
             break;
-        case "Lo sentimos! Será la proxima":
-            visualLandingIndex = 3;
-            break;
-        default:
-            visualLandingIndex = 0;
     }
 
     const targetAngle = (visualLandingIndex * anglePerVisualSegment) + (anglePerVisualSegment / 2);
